@@ -10,11 +10,11 @@
 
 module.exports = function(grunt) {
 
-    var ChildProcess = require('child_process'), 
-        Util = require('util'), 
+    var ChildProcess = require('child_process'),
+        Util = require('util'),
         Path = require('path'),
         _ = require('lodash')._;
-    
+
     // Please see the Grunt documentation for more information regarding task
     // creation: http://gruntjs.com/creating-tasks
     grunt.registerMultiTask('phpdocumentor', 'Runs the PHPDocumentor documentation generator tool.', function() {
@@ -22,6 +22,7 @@ module.exports = function(grunt) {
         var options = {};
         // Merge task-specific and/or target-specific options with these defaults.
         _.extend(options, {
+                bin: '',
                 target : '',
                 filename : '',
                 directory : '',
@@ -44,53 +45,54 @@ module.exports = function(grunt) {
             },
             this.data
         );
-        
+
         var done = this.async();
-        
+
         // Checks if the provided Phpdocumentor command name is valid
         if(options.command !== undefined &&
-           options.command !== 'help' && 
-           options.command !== 'list' && 
-           options.command !== 'parse' && 
-           options.command !== 'run' && 
+           options.command !== 'help' &&
+           options.command !== 'list' &&
+           options.command !== 'parse' &&
+           options.command !== 'run' &&
            options.command !== 'transform' &&
-           options.command !== 'project:parse' && 
-           options.command !== 'project:run' && 
+           options.command !== 'project:parse' &&
+           options.command !== 'project:run' &&
            options.command !== 'project:transform' &&
-           options.command !== 'template:generate' && 
-           options.command !== 'template:list' && 
+           options.command !== 'template:generate' &&
+           options.command !== 'template:list' &&
            options.command !== 'template:package') {
-            
+
             grunt.log.error(Util.format('Phpdocumentor does not provide any command named \'%s\' !', this.data.command));
             done(false);
-            
+
         }
-        
+
         // path to the phar file
-        var phpDocumentorCommand = options.bin        || Path.resolve(__dirname, '..', 'bin', 'phpdoc'),
+        var phpDocumentorCommand = options.bin        || 'phpdoc',
             target               = options.target     || 'docs',
             directory            = options.directory  || './';
 
-        phpDocumentorCommand += ' --target=' + target;
-        phpDocumentorCommand += ' --directory=' + directory;
-        
+        phpDocumentorCommand += (options.target) ? ' --target=' + options.target : '';
+        phpDocumentorCommand += (options.directory) ? ' --directory=' + options.directory : '';
+        phpDocumentorCommand += (options.template) ? ' --template=' + options.template : '';
+
         grunt.log.write(phpDocumentorCommand);
-        
+
         var childProcess = ChildProcess.exec(phpDocumentorCommand, function(error, stdout, stderr) {
-            
+
             grunt.log.writeln(error);
             grunt.log.writeln(stdout);
             grunt.log.writeln(stderr);
         });
-        
+
         childProcess.on('exit', function(code) {
-            
+
             if (code > 0) {
-                
+
                 grunt.log.error(Util.format('Exited with code: %d.', code));
-                
+
                 return done(false);
-            
+
             }
 
             grunt.verbose.ok(Util.format('Exited with code: %d.', code));
